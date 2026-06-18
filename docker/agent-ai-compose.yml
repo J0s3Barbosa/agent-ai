@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for persistent state
+  postgres:
+    image: postgres:15-alpine
+    container_name: agent-ai-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-agent_ai}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["pg_isready", "-q", "-h^localhost"]
+      interval: 10s
+      retries: 5
+
+  # Redis cache and task queue
+  redis:
+    image: redis:7-alpine
+    container_name: agent-ai-redis
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  # Celery worker for task processing
+  celery-worker:
+    build_context:
+      dockerfile: docker/Dockerfile
+      args:
+        - "--host=0.0.0.0"
+        - "--port=8000"
+        - "--loglevel=info"
+    container_name: agent-ai-celery-worker
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./src/celery/worker.py:/app/celery/worker.py:ro
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PYTHONPATH: /app/src
+
+  # Main application server
+  agent-ai:
+    build_context:
+      dockerfile: docker/Dockerfile
+      args:
+        - "--host=0.0.0.0"
+        - "--port=8000"
+        - "--loglevel=info"
+    container_name: agent-ai
+    depends_on:
+      - postgres
+      - redis
+      - celery-worker
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/main.py:/app/main.py:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: .config.settings
+      PYTHONPATH: /app/src
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default_network:
+    driver: bridge
+
+# Expose port 8000 for the application
+ports:
+  - "8000:8000"

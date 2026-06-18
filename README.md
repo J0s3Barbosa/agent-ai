@@ -1,7 +1,7 @@
-# README.md
 # Agent AI Platform
 
 ## Overview
+
 A plataforma central para desenvolvimento e gerenciamento de agentes inteligentes, baseada em arquiteturas modernas e padrões de software distribuído. Esta ferramenta fornece ferramentas completas para criação, integração e monitoramento de agentes autônomos.
 
 ## 🏗️ Architecture
@@ -10,32 +10,32 @@ A plataforma central para desenvolvimento e gerenciamento de agentes inteligente
 
 ```mermaid
 graph TB
-    LR[\"Request Layer\"] --> A[\"Agent Orchestrator\"] --> B[\"Task Queue (Redis)\"]
-    LR -.-> C[\"Validation Layer\"]
-    LR -.-> D[\"Integration Layer\"]
-    LR -.-> E[\"Monitoring Layer\"]
+    LR[Request Layer] --> A[Agent Orchestrator]
+    LR -.-> C[Validation Layer]
+    LR -.-> D[Integration Layer]
+    LR -.-> E[Monitoring Layer]
 
-    subgraph \"Request Layer\"
-        A1[\"REST API Gateway\"] --> A2[\"Load Balancing\"]
-        A2 --> A3[\"Rate Limiting\"]
+    subgraph "Request Layer"
+        A1[REST API Gateway] --> A2[Load Balancing]
+        A2 --> A3[Rate Limiting]
     end
 
-    subgraph \"Validation Layer\"
-        A4[\"Schema Validation\"] --> A5[\"Security Checks\"]
+    subgraph "Validation Layer"
+        A4[Schema Validation] --> A5[Security Checks]
     end
 
-    subgraph \"Integration Layer\"
-        A6[\"External Service Calls\"] --> A7[\"Auth: OAuth2, JWT\"]
-        A8[\"API Gateways (Stripe, Slack)\"]
+    subgraph "Integration Layer"
+        A6[External Service Calls] --> A7[Auth: OAuth2, JWT]
+        A8[API Gateways (Stripe, Slack)]
     end
 
-    subgraph \"Execution Layer\"
-        B1[\"Task Processing\"] --> B2[\"State Management\"]
-        B3[\"Error Handling\"]
+    subgraph "Execution Layer"
+        B1[Task Processing] --> B2[State Management]
+        B3[Error Handling]
     end
 
-    subgraph \"Monitoring Layer\"
-        C1[\"Metrics (Prometheus)\"] --> C2[\"Alerts (Grafana)\"]
+    subgraph "Monitoring Layer"
+        C1[Metrics (Prometheus)] --> C2[Alerts (Grafana)]
     end
 ```
 
@@ -62,4 +62,5 @@ graph TB
 - [Architecture Documentation](./architecture.md)
 
 ---
+
 *Last Updated: June 2024*

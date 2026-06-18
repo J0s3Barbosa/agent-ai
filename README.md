@@ -1,3 +1,4 @@
+# README.md
 # Agent AI Platform
 
 ## Overview
@@ -7,88 +8,35 @@ A plataforma central para desenvolvimento e gerenciamento de agentes inteligente
 
 ### Componentes Principais
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        AGENT-AI ARCHITECTURE                      │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────┐   │
-│  │   Orchestrator │ →  │  Request     │ →  │  Response      │   │
-│  │  (Scheduler)   │◄───►│  Handler     │◄───┘                   │
-│  └──────────────┘    └──────────────┘           └──────────────────┘   │
-│                                      ↑                                    │
-│                                      |                                    │
-│                                      | REST API Gateway                       │
-│                                      ▼                                    │
-│                    ┌───────────────────────────────────────────────────┐  │
-│                    │         Request Routing Layer                     │  │
-│                    │   - Route Matching (URL, Method, Headers)           │  │
-│                    │   - Load Balancing (Multiple Agents per Endpoint)    │  │
-│                    │   - Rate Limiting & Caching                         │  │
-│                    └───────────────┬──────────────────────────────────┘  │
-│                                      │                                    │
-│                    ┌───────────────▼───────────────┐                       │
-│                    │         Validation Layer          │                       │
-│                    │   - Schema Validation             │                       │
-│                    │   - Security Checks                 │                       │
-│                    └───────────────┬───────────────┘                       │
-│                                      ▼                                    │
-│        ┌──────────────────────────────────────────────────┐               │
-│        │           Agentic Workflow Layer                  │               │
-│        │  ┌───────────────┐    ┌───────────────┐          │               │
-│        │  │ Task Queue      │◄───►│   Agent     │          │               │
-│        │  │ (Redis Cluster) │    │ Worker      │          │               │
-│        │  └───────────────┘    └───────────────┘          │               │
-│        │                                                    │               │
-│        │   ┌──────────────────────────────────────────────┐ │               │
-│        │   │         Integration Layer                     │ │               │
-│        │   │  - API Gateway (Stripe, AWS, Slack, etc)       │ │               │
-│        │   │  - External Service Calls                      │ │               │
-│        │   │  - Authentication (OAuth2, JWT)                 │ │               │
-│        │   └───────────────┬────────────────────────────────┘ │               │
-│        │                    ▼                                    │               │
-│        │           ┌──────────────────────────────────────────────┐ │               │
-│        │           │         Agent Execution                     │ │               │
-│        │           │  - Task Processing                           │ │               │
-│        │           │  - State Management                          │ │               │
-│        │           │  - Error Handling                              │ │               │
-│        │           └───────────────┬────────────────────────────┘ │               │
-│        │                    ▲                                    │               │
-│        │   ┌──────────────────────────────────────────────────┐  │               │
-│        │   │         Monitoring Layer                          │  │               │
-│        │   │   - Performance Metrics (Latency, Throughput)     │  │               │
-│        │   │   - Resource Usage (CPU, Memory, Network)           │  │               │
-│        │   │   - Agent Health Checks                             │  │               │
-│        │   └──────────────────────────────────────────────────┘  │               │
-│        └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Agent Architecture Diagram
-
 ```mermaid
 graph TB
-    subgraph "Agent Orchestrator"
-        A1[Scheduler] --> A2[Task Queue]
+    LR[\"Request Layer\"] --> A[\"Agent Orchestrator\"] --> B[\"Task Queue (Redis)\"]
+    LR -.-> C[\"Validation Layer\"]
+    LR -.-> D[\"Integration Layer\"]
+    LR -.-> E[\"Monitoring Layer\"]
+
+    subgraph \"Request Layer\"
+        A1[\"REST API Gateway\"] --> A2[\"Load Balancing\"]
+        A2 --> A3[\"Rate Limiting\"]
     end
-    
-    subgraph "Request Layer"
-        A3[REST API Gateway] --> A4[Validation]
+
+    subgraph \"Validation Layer\"
+        A4[\"Schema Validation\"] --> A5[\"Security Checks\"]
     end
-    
-    subgraph "Integration Layer"
-        A5[External Service] --> A6[Agent Worker]
+
+    subgraph \"Integration Layer\"
+        A6[\"External Service Calls\"] --> A7[\"Auth: OAuth2, JWT\"]
+        A8[\"API Gateways (Stripe, Slack)\"]
     end
-    
-    subgraph "Execution Layer"
-        A7[Task Processing] --> A8[State Management]
+
+    subgraph \"Execution Layer\"
+        B1[\"Task Processing\"] --> B2[\"State Management\"]
+        B3[\"Error Handling\"]
     end
-    
-    subgraph "Monitoring Layer"
-        A9[Metrics Collector] --> A10[Alert System]
+
+    subgraph \"Monitoring Layer\"
+        C1[\"Metrics (Prometheus)\"] --> C2[\"Alerts (Grafana)\"]
     end
-    
-    A4 -.->|Validation Passed| A6
-    A2 -.-> A3
 ```
 
 ## 📦 Key Features

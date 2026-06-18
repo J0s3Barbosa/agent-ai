@@ -1,0 +1,228 @@
+name: Deploy Workflow
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target deployment environment"
+        required: true
+        default: "production"
+        choices:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to ${{ inputs.environment }}
+      run: |
+        echo "Deploying to ${{ inputs.environment }} environment"
+        # Your deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "Deployment completed to ${{ inputs.environment }}"
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Staging
+      run: |
+        # Your staging deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "Deployment completed to STAGING"
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Production
+      run: |
+        # Your production deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "Deployment completed to PRODUCTION"
+
+  deploy-all:
+    runs-on: ubuntu-latest
+    needs: [test, staging, production]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to all environments
+      run: |
+        echo "Deploying to all environments..."
+        
+        # Your deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "All deployments completed"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+    
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install black isort autoflake
+    
+    - name: Run linting
+      run: |
+        black .
+        isort .
+        autoflake --check
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@v1
+      with:
+        scan-location: "github-repo"
+        format: "table"
+        severity-level: "CRITICAL,HIGH,MEDIUM"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        tags: |
+          j0s3barbosa/agent-ai:${{ github.sha }}
+
+  docker-test:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Test Docker Compose
+      run: |
+        docker compose config
+
+  docker-deploy:
+    runs-on: ubuntu-latest
+    needs: [test, docker-test]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        tags: |
+          j0s3barbosa/agent-ai:${{ github.sha }}
+
+  deploy-docker:
+    runs-on: ubuntu-latest
+    needs: [docker-test, docker-deploy]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Docker Compose
+      run: |
+        docker compose up -d
+        
+    - name: Notify team
+      run: |
+        echo "Docker deployment completed"
+
+  deploy-all-docker:
+    runs-on: ubuntu-latest
+    needs: [test, lint, security-scan, docker-build, docker-test, docker-deploy]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to all environments via Docker Compose
+      run: |
+        echo "Deploying to all environments via Docker Compose..."
+        
+        # Your deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "All Docker deployments completed"
+
+  deploy-all:
+    runs-on: ubuntu-latest
+    needs: [test, lint, security-scan, docker-build, docker-test, docker-deploy]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to all environments
+      run: |
+        echo "Deploying to all environments..."
+        
+        # Your deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "All deployments completed"
+
+  deploy-docker-all:
+    runs-on: ubuntu-latest
+    needs: [test, lint, security-scan, docker-build, docker-test, docker-deploy]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to all environments via Docker Compose
+      run: |
+        echo "Deploying to all environments via Docker Compose..."
+        
+        # Your deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "All Docker deployments completed"
+
+  deploy-all-docker:
+    runs-on: ubuntu-latest
+    needs: [test, lint, security-scan, docker-build, docker-test, docker-deploy]
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to all environments via Docker Compose
+      run: |
+        echo "Deploying to all environments via Docker Compose..."
+        
+        # Your deployment commands go here
+        
+    - name: Notify team
+      run: |
+        echo "All Docker deployments completed"
